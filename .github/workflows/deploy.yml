@@ -60,8 +60,16 @@ jobs:
       - name: Deploy to Vercel
         # Memindahkan hasil build ke folder standar Vercel dan deploy
         run: |
-          mkdir -p .vercel/output
-          cp -r out/* .vercel/output/
+          # 1. Buat struktur folder yang dibutuhkan Vercel Build Output API
+          mkdir -p .vercel/output/static
+          
+          # 2. Pindahkan file statis hasil build Vite ke folder /static
+          cp -r out/* .vercel/output/static/
+          
+          # 3. Buat file config.json agar Vercel tahu ini aplikasi Single Page App (SPA)
+          echo '{"version": 3, "routes": [{"handle": "filesystem"}, {"src": "/.*", "dest": "/index.html"}]}' > .vercel/output/config.json
+          
+          # 4. Jalankan deploy
           vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
