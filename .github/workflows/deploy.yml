@@ -3,7 +3,7 @@ name: React CI/CD Pipeline
 on:
   push:
     branches:
-      - main  # Pipeline akan jalan setiap ada PUSH ke BRANCH MAIN
+      - main
 
 jobs:
   build:
@@ -40,7 +40,7 @@ jobs:
       - name: Checkout kode
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Penting: mengambil semua riwayat agar git log tidak error
+          fetch-depth: 0
 
       - name: Download hasil build
         uses: actions/download-artifact@v4
@@ -48,17 +48,21 @@ jobs:
           name: dist-files
           path: out
 
-      - name: Siapkan folder untuk Vercel
-        # Kita pindahkan isi folder 'out' ke folder '.vercel/output'
+      - name: Install Vercel CLI Terbaru
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Info
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy to Vercel
+        # Memindahkan hasil build ke folder standar Vercel dan deploy
         run: |
           mkdir -p .vercel/output
           cp -r out/* .vercel/output/
-
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prebuilt --prod' # Memberitahu Vercel untuk pakai hasil build yang sudah ada
-          working-directory: .
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
