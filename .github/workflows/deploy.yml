@@ -48,11 +48,17 @@ jobs:
           name: dist-files
           path: out
 
+      - name: Siapkan folder untuk Vercel
+        # Kita pindahkan isi folder 'out' ke folder '.vercel/output'
+        run: |
+          mkdir -p .vercel/output
+          cp -r out/* .vercel/output/
+
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prebuilt' # Memberitahu Vercel untuk pakai hasil build yang sudah ada
+          vercel-args: '--prebuilt --prod' # Memberitahu Vercel untuk pakai hasil build yang sudah ada
           working-directory: .
